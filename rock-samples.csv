@@ -1,0 +1,33 @@
+No,1,2,3,4,5,"6
+",7,8,9,10,Result,Reasons
+Example 1,Albite,Anorthite,Quartz,Quartz,Annite,Muscovite,Quartz,Albite,Annite,Orthoclase,Granite,
+Example 2,Albite,Quartz,Annite,Annite,Muscovite,Orthoclase,Orthoclase,Quartz,Quartz,Anorthite,Granite,
+Example 3,Margarite,Quartz,Quartz,Margarite,Orthoclase,Margarite,Anorthite,Quartz,Annite,Quartz,Not a Granite,because of Margarite
+Example 4,Orthoclase,Muscovite,Annite,Orthoclas,Albite,Anorthite,Muscovite,Annite,Quartz,Phlogopite,Granite,
+Example 5,Annite,Phlogopite,Sanidine,Albite,Sanidine,Quartz,Annite,Sanidine,Sanidine,Sanidine,Not a Granite,because of Sanidine
+Example 6,Annite,Quartz,Quartz,Annite,Albite,Anorthite,Orthoclase,Albite,Annite,Muscovite,Granite,
+Example 7,Quartz ,Annite,Muscovite,Quartz,Anorthite,Orthoclase,Quartz,Albite,Quartz,Annite,Granite,
+Example 8,Orthoclase,Eastonite,Anorthite,Albite,Eastonite,Phlogopite,Quartz,Quartz,Eastonite,Eastonite,Not a Granite,because of Eastonie
+Example 9,Anorthite,Quartz,Staurolite,Garnet,Orthoclase,Phlogopite,Muscovite,Albite,Quartz,Annite,Not a Granite,because of Staurolite and Garnet
+Example 10,Garnet,Annite,Quartz,Anorthite,Albite,Orthoclase,Muscovite,Garnet,Quartz,Annite,Not a Granite,because of Garnet
+Example 11,Quartz,Calcite,Ortholcase,Albite,Anorthite,Pyrite,Annite,Phlogopite,Muscovite,Tourmaline,Sandstone,
+Example 12,Albite,Orthoclase,Anorthite,Tourmaline,Rutile,Muscovite,Quartz,Calcite,Annite,Anorthite,Sandstone,
+Example 13,Sanidine,Albite,Sanidine,Quartz,Calcite,Quartz,Albite,Anorthite,Margarite,Annite,Not a Sandstone,because of Sanidine and Margarite
+Example 14,Pyrite,Orthoclase,Quartz,Calcite,Quartz,Albite,Anorthite,Tourmaline,Rutile,Annite,Sandstone,
+Example 15,Albite,Anorthite,Anorthite,Phlogopite,Muscovite,Annite,Quartz,Orthoclase,Quartz,Quartz,Sandstone,
+Example 16,Orthoclase,Albite,Anorthite,Annite,Muscovite,Quartz,Quartz,Quartz,Tourmaline,Annite,Sandstone,
+Example 17,Quartz,Anorthite,Orthoclase,Orthoclase,Phlogopite,Epidote,Quartz,Omphacite,Quartz,Annite,Not a Sandstone,because of Epidote and Omphacite
+Example 18,Albite,Phlogopite,Orthoclase,Albite,Muscovite,Annite,Calcite,Quartz,Albite,Pyrite,Sandstone,
+Example 19,Eastonite,Albite,Quartz,Quartz,Albite,Eastonite,Muscovite,Quartz,Calcite,Annite,Not a Sandstone,because of Eastonite
+"Example 20
+",Quartz,Muscovite,Tourmaline,Quartz,Calcite,Albite,Tourmaline,Annite,Muscovite,Orthoclase,Sandstone,
+Example 21,Calcite,Quartz,Calcite,Calcite,Calcite,Anorthite,Albite,Calcite,Calcite,Calcite,Limestone,
+Example 22,Andalusite,Calcite,Calcite,Albite,Orthoclase,Calcite,Calcite,Kyanite,Pyrite,Calcite,Not a Limestone,because of Andalusite and Kyanite
+Example 23,Quartz,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Quartz,Calcite,Calcite,Limestone,
+Example 24,Dolomite,Calcite,Calcite,Epidote,Rhodochrosite,Calcite,Calcite,Calcite,Calcite,Calcite,Not a Limestone,because of Epidote
+Example 25,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Limestone,
+Example 26,Quartz,Calcite,Quartz,Albite,Calcite,Pyrite,Quartz,Calcite,Calcite,Calcite,Limestone,
+Example 27,Calcite,Quartz,Calcite,Calcite,Calcite,Calcite,Calcite,Quartz,Calcite,Quartz,Limestone,
+Example 28,Sanidine,Quartz,Sanidine,Calcite,Calcite,Sanidine,Calcite,Calcite,Calcite,Calcite,Not a Limestone,because of Sanidine
+Example 29,Calcite,Calcite,Calcite,Albite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Limestone,
+Example 30,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Calcite,Limestone,
