@@ -14,17 +14,33 @@ cd rocks-evaluation
 pip install -e .
 ```
 
+### Development
+- Run `pip install -e .` initially to install the package
+- Run `pip install -e .` again after modifying any imports in `__init__.py` files
+- No reinstall needed for changes to function implementations
+- Editable mode (-e flag) creates a link to source code, allowing changes to take effect immediately
+
 ## Project Structure
 ```
 rocks_evaluation/
-├── models/
-│   ├── mineral_classifier.py     # CNN architectures
-│   └── integrated_classifier.py  # Expert system + CNN integration
-├── utils/
-│   ├── enums.py                 # Rock type definitions
-│   ├── data_classes.py          # Mineral groupings (Γ notation)
-│   └── visualization.py         # Analysis plotting
-└── config.py                    # System parameters
+├── rocks_evaluation/          
+│   ├── models/
+│   │   ├── mineral_classifier.py
+│   │   └── integrated_classifier.py
+│   └── utils/
+│       ├── enums.py
+│       ├── data_classes.py
+│       └── visualization.py
+├── notebooks/
+│   ├── generate-validate-data-expert.ipynb           # to generate synthetic rocks as test samples for validation
+│   ├── integrated-mineral-rock-system.ipynb          # to run hybrid system - baseline + expert system
+│   ├── integrated-mineral-rock-system-w-unknown.ipynb   # to run hybrid system - uncertainty + expert system
+│   └── evaluation_metrics.ipynb                      # plots to put at report
+├── validation_rocks/          # Validation data
+├── weights/                   # Model weights
+├── mineral_label_encoder.joblib
+├── setup.py
+└── README.md
 ```
 
 ## Expert System Rules

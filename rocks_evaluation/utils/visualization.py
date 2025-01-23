@@ -30,3 +30,33 @@ def plot_mineral_analysis(analysis_history, rock_num, save_path=None):
     else:
         plt.show()
     plt.close()
+
+def save_analysis(result, filename="rock_analysis_results.txt"):
+   """
+   Save rock analysis results to a text file
+   Args:
+       result (dict): Analysis result dictionary
+       filename (str): Name of output file
+   """
+   with open(filename, 'w') as f:
+       # Analysis Results
+       f.write("\nAnalysis Results:\n")
+       f.write(f"Classification: {result['rock_analysis']['classification']}\n")
+       
+       if 'accuracy_rule' in result['rock_analysis']:
+           acc = result['rock_analysis']['accuracy_rule']
+           f.write(f"Accuracy: {acc['accuracy']:.1%}\n")
+           if 'unknown_count' in acc:
+               f.write(f"Unknown predictions: {acc['unknown_count']}\n")
+       
+       # Mineral Assemblage
+       if 'assemblage_rules' in result['rock_analysis']:
+           f.write("\nMineral Assemblage:\n")
+           for rule, satisfied in result['rock_analysis']['assemblage_rules']['details'].items():
+               f.write(f"- {rule}: {'✓' if satisfied else '✗'}\n")
+               
+       # Uncertainty Metrics
+       if 'uncertainty' in result:
+           f.write("\nUncertainty Metrics:\n")
+           f.write(f"Entropy: {result['uncertainty']['entropy']:.4f}\n")
+           f.write(f"Variance: {result['uncertainty']['variance']:.4f}\n")
