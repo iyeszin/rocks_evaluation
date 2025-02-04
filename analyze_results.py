@@ -11,12 +11,12 @@ def analyze_results():
     # Borderline is consider the rock type
     # Not the rock type is consider other
     ground_truths = [
-        'granite', 'granite', 'granite', 'granite', 'granite', 
-        'granite', 'granite', 'granite', 'other', 'other',
-        'sandstone', 'sandstone', 'sandstone', 'sandstone', 'sandstone',
-        'sandstone', 'other', 'sandstone', 'sandstone', 'sandstone',
+        'granite', 'granite', 'other', 'granite', 'other', 
+        'granite', 'granite', 'other', 'other', 'other',
+        'sandstone', 'sandstone', 'other', 'sandstone', 'sandstone',
+        'sandstone', 'other', 'sandstone', 'other', 'sandstone',
         'limestone', 'other', 'limestone', 'other', 'limestone',
-        'limestone', 'limestone', 'limestone', 'limestone', 'limestone'
+        'limestone', 'limestone', 'other', 'limestone', 'limestone'
     ]
     
     # Create ground truth dataframe
