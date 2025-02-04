@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-n_class = 14
+n_class = 23
 
 class SimpleCNN1D(nn.Module):
     def __init__(self, n_class=n_class):
