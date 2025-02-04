@@ -287,47 +287,176 @@ class HierarchicalRockClassifier(IntegratedRockClassifier):
     def __init__(self, model, label_encoder, device, window_size: int = 10):
         super().__init__(model, label_encoder, device, window_size)
         self.hierarchy = MineralHierarchy()
+
+    def get_mineral_counts(self, predictions: List[str]) -> Dict[str, int]:
+        """Count occurrences of each mineral in predictions"""
+        predictions_lower = [p.lower() for p in predictions]
+        return {
+            'quartz': predictions_lower.count('quartz'),
+            'feldspars': (
+                predictions_lower.count('orthoclase') +
+                predictions_lower.count('albite') +
+                predictions_lower.count('anorthite')
+            ),
+            'micas': (
+                predictions_lower.count('annite') +
+                predictions_lower.count('phlogopite') +
+                predictions_lower.count('muscovite')
+            ),
+            'calcite': predictions_lower.count('calcite'),
+            'pyrite': predictions_lower.count('pyrite'),
+            'rutile': predictions_lower.count('rutile'),
+            'tourmaline': predictions_lower.count('tourmaline')
+        }
+
+    def evaluate_rock_type_weights(self, predictions: List[str]) -> Dict[str, float]:
+        """
+        Evaluate likelihood weights for each rock type based on mineral proportions
+        """
+        if len(predictions) != self.window_size:
+            return {'granite': 0.0, 'sandstone': 0.0, 'limestone': 0.0}
         
-    def evaluate_rock_composition(self, predictions: List[str], rock_type: str) -> Dict:
-        """Evaluate if mineral composition matches a specific rock type's characteristics"""
-        if len(predictions) != 10:
-            return {
-                'matches_composition': False,
-                'confidence': 0.0,
-                'group_scores': {}
+        # Add debug printing
+        print("\nDEBUG: Predictions received:", predictions)
+
+        counts = self.get_mineral_counts(predictions)
+        total = len(predictions)
+
+        # Print counts
+        print("\nDEBUG: Mineral counts:")
+        for mineral, count in counts.items():
+            print(f"{mineral}: {count}")
+
+        # Calculate key ratios
+        quartz_ratio = counts['quartz'] / total
+        feldspar_ratio = counts['feldspars'] / total
+        mica_ratio = counts['micas'] / total
+        calcite_ratio = counts['calcite'] / total
+        
+        print("\nDEBUG: Mineral ratios:")
+        print(f"Quartz ratio: {quartz_ratio:.2f}")
+        print(f"Feldspar ratio: {feldspar_ratio:.2f}")
+        print(f"Mica ratio: {mica_ratio:.2f}")
+        print(f"Calcite ratio: {calcite_ratio:.2f}")
+
+        weights = {
+            'granite': 0.0,
+            'sandstone': 0.0,
+            'limestone': 0.0
+        }
+
+        # Granite criteria check
+        print("\nDEBUG: Checking granite criteria:")
+        print(f"0.2 <= quartz_ratio <= 0.4: {0.2 <= quartz_ratio <= 0.4}")
+        print(f"0.45 <= feldspar_ratio <= 0.8: {0.45 <= feldspar_ratio <= 0.8}")
+        print(f"0.0 <= mica_ratio <= 0.15: {0.0 <= mica_ratio <= 0.15}")
+
+         # Granite scoring - partial weights for each criterion
+        granite_score = 0.0
+        if 0.2 <= quartz_ratio <= 0.4:
+            granite_score += 0.4  # 40% of weight for correct quartz ratio
+        if 0.35 <= feldspar_ratio <= 0.8:  # Made more flexible
+            granite_score += 0.4  # 40% of weight for correct feldspar ratio
+        if 0.0 <= mica_ratio <= 0.35:      # Made more flexible
+            granite_score += 0.2  # 20% of weight for correct mica ratio
+        weights['granite'] = granite_score
+
+        # Sandstone criteria
+        sandstone_score = 0.0
+        if quartz_ratio >= 0.65:  # Made more flexible
+            sandstone_score += 0.5
+        if 0.05 <= feldspar_ratio <= 0.25:
+            sandstone_score += 0.3
+        if calcite_ratio <= 0.1:
+            sandstone_score += 0.2
+        weights['sandstone'] = sandstone_score
+
+        # Limestone criteria
+        limestone_score = 0.0
+        if calcite_ratio >= 0.85:
+            limestone_score = 1.0
+        elif calcite_ratio >= 0.45:
+            limestone_score = 0.8
+        weights['limestone'] = limestone_score
+
+        # Normalize weights
+        max_weight = max(weights.values())
+        if max_weight > 0:
+            weights = {k: v/max_weight for k, v in weights.items()}
+
+        return weights
+
+    def check_mineral_assemblage_rules(self, predictions: List[str]) -> Dict:
+        """Check mineral assemblages using weight-based approach"""
+        weights = self.evaluate_rock_type_weights(predictions)
+        
+        CONFIDENCE_THRESHOLD = 0.7
+        max_weight = max(weights.values())
+        
+        rock_types = {
+            'granite': weights['granite'] >= CONFIDENCE_THRESHOLD,
+            'limestone': weights['limestone'] >= CONFIDENCE_THRESHOLD,
+            'sandstone': weights['sandstone'] >= CONFIDENCE_THRESHOLD
+        }
+            
+        return {
+            'satisfied': max_weight >= CONFIDENCE_THRESHOLD,
+            'weights': weights,
+            'rock_types': rock_types,
+            'counts': self.get_mineral_counts(predictions)
+        }
+
+    def process_spectrum(self, spectrum: torch.Tensor, true_mineral: str = None) -> Dict:
+        """Process spectrum and determine rock type"""
+        predicted_mineral, probabilities = self.predict_mineral(spectrum)
+        
+        self.prediction_history.append(predicted_mineral)
+        if true_mineral is not None:
+            self.ground_truth_history.append(true_mineral)
+        
+        if len(self.prediction_history) > self.window_size:
+            self.prediction_history.pop(0)
+            if self.ground_truth_history:
+                self.ground_truth_history.pop(0)
+        
+        if len(self.prediction_history) == self.window_size:
+            mineral_analysis = self.check_mineral_assemblage_rules(self.prediction_history)
+            
+            # Determine classification based on weights
+            if mineral_analysis['satisfied']:
+                weights = mineral_analysis['weights']
+                max_rock = max(weights.items(), key=lambda x: x[1])[0].upper()
+                classification = RockType[max_rock]
+            else:
+                classification = RockType.OTHER
+                
+            rock_analysis = {
+                'classification': classification.value,
+                'weights': mineral_analysis['weights'],
+                'mineral_counts': mineral_analysis['counts'],
+                'confidence': max(mineral_analysis['weights'].values())
+            }
+        else:
+            rock_analysis = {
+                'classification': RockType.OTHER.value,
+                'status': 'Insufficient measurements',
+                'current_count': len(self.prediction_history)
             }
 
-        group_scores = {}
-        predictions_lower = [p.lower() for p in predictions]
-        constraints = self.hierarchy.get_composition_constraints(rock_type)
+        # Store in analysis_history - This is the key addition
+        self.analysis_history.append({
+            'mineral_prediction': predicted_mineral,
+            'true_mineral': true_mineral,
+            'rock_analysis': rock_analysis,
+            'measurement_number': len(self.prediction_history)
+        })
         
-        # Calculate scores based on mineral occurrences and constraints
-        for mineral in predictions_lower:
-            mineral_details = self.hierarchy.get_mineral_details(mineral, rock_type)
-            if mineral_details:
-                group = mineral_details['parent_group']
-                weight = mineral_details.get('parent_weight', 0.0)
-                group_scores[group] = group_scores.get(group, 0) + weight
-
-        # Normalize scores by number of measurements
-        for group in group_scores:
-            group_scores[group] /= 10
-
-        # Check if scores are within constraints
-        matches_constraints = all(
-            constraints[group][0] <= score <= constraints[group][1]
-            for group, score in group_scores.items()
-            if group in constraints
-        )
-
-        # Calculate overall confidence
-        confidence = sum(group_scores.values()) / len(constraints)
-
         return {
-            'matches_composition': matches_constraints,
-            'confidence': confidence,
-            'group_scores': group_scores
+            'mineral_prediction': predicted_mineral,
+            'mineral_probabilities': probabilities,
+            'rock_analysis': rock_analysis
         }
+    
 
 class UncertaintyHierarchicalRockClassifier(UncertaintyIntegratedRockClassifier):
     """Adds hierarchical mineral structure to uncertainty-aware classifier"""
