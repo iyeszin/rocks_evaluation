@@ -390,17 +390,30 @@ class HierarchicalRockClassifier(IntegratedRockClassifier):
         """Check mineral assemblages using weight-based approach"""
         weights = self.evaluate_rock_type_weights(predictions)
         
-        CONFIDENCE_THRESHOLD = 0.7
-        max_weight = max(weights.values())
+        CONFIDENCE_THRESHOLD = 0.7  # Minimum confidence needed
+        DOMINANCE_THRESHOLD = 0.3   # Minimum difference needed between highest and second-highest weight
+        
+        # Get the two highest weights
+        sorted_weights = sorted(weights.items(), key=lambda x: x[1], reverse=True)
+        highest_weight = sorted_weights[0][1]
+        second_highest = sorted_weights[1][1] if len(sorted_weights) > 1 else 0
+        
+        # Check if we're confident enough
+        is_confident = (highest_weight >= CONFIDENCE_THRESHOLD and 
+                    (highest_weight - second_highest) >= DOMINANCE_THRESHOLD)
         
         rock_types = {
-            'granite': weights['granite'] >= CONFIDENCE_THRESHOLD,
-            'limestone': weights['limestone'] >= CONFIDENCE_THRESHOLD,
-            'sandstone': weights['sandstone'] >= CONFIDENCE_THRESHOLD
+            'granite': False,
+            'limestone': False,
+            'sandstone': False
         }
-            
+        
+        if is_confident:
+            winning_rock = sorted_weights[0][0]
+            rock_types[winning_rock] = True
+        
         return {
-            'satisfied': max_weight >= CONFIDENCE_THRESHOLD,
+            'satisfied': is_confident,
             'weights': weights,
             'rock_types': rock_types,
             'counts': self.get_mineral_counts(predictions)
@@ -434,7 +447,8 @@ class HierarchicalRockClassifier(IntegratedRockClassifier):
                 'classification': classification.value,
                 'weights': mineral_analysis['weights'],
                 'mineral_counts': mineral_analysis['counts'],
-                'confidence': max(mineral_analysis['weights'].values())
+                'confidence': max(mineral_analysis['weights'].values()),
+                'is_confident': mineral_analysis['satisfied'] 
             }
         else:
             rock_analysis = {
