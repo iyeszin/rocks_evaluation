@@ -3,9 +3,9 @@ from sklearn.metrics import confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def analyze_results():
+def analyze_results(file_path='rock_classifications.csv'):
     # Load saved classifications
-    results_df = pd.read_csv('rock_classifications.csv')
+    results_df = pd.read_csv(file_path)
     
     # Ground truth list
     # Borderline is consider the rock type
