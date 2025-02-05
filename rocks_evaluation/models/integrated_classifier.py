@@ -474,195 +474,258 @@ class HierarchicalRockClassifier(IntegratedRockClassifier):
 
 class UncertaintyHierarchicalRockClassifier(UncertaintyIntegratedRockClassifier):
     """Adds hierarchical mineral structure to uncertainty-aware classifier"""
-    def __init__(self, model, label_encoder, device, 
-                 entropy_threshold=1.3, 
-                 variance_threshold=0.07):
-        super().__init__(model, label_encoder, device, 
-                        entropy_threshold, variance_threshold)
-        self.hierarchy = MineralHierarchy()
-
-    def evaluate_rock_composition(self, 
-                                predictions: List[str], 
-                                uncertainties: List[Dict[str, float]], 
-                                rock_type: str) -> Dict:
+    def __init__(self, model, label_encoder, device, window_size: int = 10, 
+                 uncertainty_threshold: float = 0.2):
         """
-        Evaluate rock composition considering prediction uncertainties
+        Initialize the uncertainty-aware hierarchical rock classifier
         
         Args:
-            predictions: List of predicted minerals
-            uncertainties: List of dicts containing 'entropy' and 'variance' for each prediction
-            rock_type: Type of rock to evaluate against ('granite', 'sandstone', 'limestone')
+            model: The trained neural network model
+            label_encoder: Encoder for mineral labels
+            device: Device to run model on ('cuda' or 'cpu')
+            window_size: Number of measurements to use for rock type classification
+            uncertainty_threshold: Threshold for considering predictions uncertain
         """
-        if len(predictions) != 10 or len(uncertainties) != 10:
-            return {
-                'matches_composition': False,
-                'confidence': 0.0,
-                'group_scores': {},
-                'uncertainty_metrics': {
-                    'mean_entropy': 0.0,
-                    'mean_variance': 0.0,
-                    'uncertain_predictions': 0
-                }
-            }
+        super().__init__(model, label_encoder, device, window_size)
+        self.hierarchy = MineralHierarchy()
+        self.uncertainty_threshold = uncertainty_threshold
+        self.uncertainty_history = []  # Track uncertainties over time
+        
+    def predict_mineral_with_uncertainty(self, spectrum: torch.Tensor) -> Tuple[str, Dict[str, float], float]:
+        """
+        Predict mineral and estimate uncertainty using entropy-based approach
+        
+        Args:
+            spectrum: Input spectrum tensor
+            
+        Returns:
+            Tuple of (predicted_mineral, probabilities_dict, uncertainty)
+        """
+        # Move input to device and add batch dimension if needed
+        if spectrum.dim() == 1:
+            spectrum = spectrum.unsqueeze(0)
+        spectrum = spectrum.to(self.device)
+        
+        # Get model predictions
+        with torch.no_grad():
+            logits = self.model(spectrum)
+            probabilities = torch.softmax(logits, dim=1)
+        
+        # Convert to numpy for calculations
+        probs_np = probabilities.cpu().numpy()[0]
+        
+        # Calculate entropy-based uncertainty
+        epsilon = 1e-10  # Small constant to avoid log(0)
+        entropy = -np.sum(probs_np * np.log(probs_np + epsilon))
+        max_entropy = -np.log(1.0/len(self.label_encoder.classes_))  # Maximum possible entropy
+        uncertainty = entropy / max_entropy  # Normalize to [0,1]
+        
+        # Get predicted class
+        predicted_idx = torch.argmax(probabilities, dim=1).item()
+        predicted_mineral = self.label_encoder.inverse_transform([predicted_idx])[0]
+        
+        # Create probabilities dictionary
+        probabilities_dict = {
+            mineral: float(prob)
+            for mineral, prob in zip(self.label_encoder.classes_, probs_np)
+        }
+        
+        return predicted_mineral, probabilities_dict, uncertainty
 
-        # Count uncertain predictions
-        uncertain_count = sum(
-            1 for pred, unc in zip(predictions, uncertainties)
-            if (unc['entropy'] > self.entropy_threshold or 
-                unc['variance'] > self.variance_threshold or 
-                pred == "unknown")
-        )
-
-        # Skip composition analysis if too many uncertain predictions
-        if uncertain_count > 3:  # More than 30% uncertain
-            return {
-                'matches_composition': False,
-                'confidence': 0.0,
-                'group_scores': {},
-                'uncertainty_metrics': {
-                    'mean_entropy': np.mean([u['entropy'] for u in uncertainties]),
-                    'mean_variance': np.mean([u['variance'] for u in uncertainties]),
-                    'uncertain_predictions': uncertain_count
-                }
-            }
-
-        group_scores = {}
-        confidence_weights = {}
+    def get_mineral_counts(self, predictions: List[str], uncertainties: List[float]) -> Dict[str, float]:
+        """
+        Count occurrences of each mineral in predictions, weighted by certainty
+        
+        Args:
+            predictions: List of predicted mineral names
+            uncertainties: List of uncertainty values for each prediction
+        
+        Returns:
+            Dictionary of weighted counts for each mineral group
+        """
         predictions_lower = [p.lower() for p in predictions]
-        constraints = self.hierarchy.get_composition_constraints(rock_type)
-
-        # Calculate certainty-weighted scores
-        for mineral, uncertainty in zip(predictions_lower, uncertainties):
-            if mineral == "unknown":
-                continue
+        certainties = [1 - u for u in uncertainties]  # Convert uncertainties to certainty weights
+        
+        # Initialize counters with weighted counts
+        counts = {
+            'quartz': 0.0,
+            'feldspars': 0.0,
+            'micas': 0.0,
+            'calcite': 0.0,
+            'pyrite': 0.0,
+            'rutile': 0.0,
+            'tourmaline': 0.0
+        }
+        
+        for pred, cert in zip(predictions_lower, certainties):
+            # Add weighted counts based on prediction certainty
+            if pred == 'quartz':
+                counts['quartz'] += cert
+            elif pred in ['orthoclase', 'albite', 'anorthite']:
+                counts['feldspars'] += cert
+            elif pred in ['annite', 'phlogopite', 'muscovite']:
+                counts['micas'] += cert
+            elif pred == 'calcite':
+                counts['calcite'] += cert
+            elif pred == 'pyrite':
+                counts['pyrite'] += cert
+            elif pred == 'rutile':
+                counts['rutile'] += cert
+            elif pred == 'tourmaline':
+                counts['tourmaline'] += cert
                 
-            mineral_details = self.hierarchy.get_mineral_details(mineral, rock_type)
-            if mineral_details:
-                group = mineral_details['parent_group']
-                base_weight = mineral_details.get('parent_weight', 0.0)
-                
-                # Calculate confidence weight based on uncertainty metrics
-                confidence_weight = self._calculate_confidence_weight(uncertainty)
-                
-                # Accumulate weighted scores
-                group_scores[group] = group_scores.get(group, 0) + (base_weight * confidence_weight)
-                confidence_weights[group] = confidence_weights.get(group, 0) + confidence_weight
+        return counts
 
-        # Normalize scores by confidence weights
-        for group in group_scores:
-            if confidence_weights[group] > 0:
-                group_scores[group] /= confidence_weights[group]
+    def evaluate_rock_type_weights(self, predictions: List[str], 
+                                 uncertainties: List[float]) -> Dict[str, float]:
+        """
+        Evaluate likelihood weights for each rock type based on mineral proportions,
+        taking into account prediction uncertainties
+        """
+        if len(predictions) != self.window_size:
+            return {'granite': 0.0, 'sandstone': 0.0, 'limestone': 0.0}
+        
+        counts = self.get_mineral_counts(predictions, uncertainties)
+        total_certainty = sum(1 - u for u in uncertainties)  # Sum of certainty weights
+        
+        # Avoid division by zero
+        if total_certainty == 0:
+            return {'granite': 0.0, 'sandstone': 0.0, 'limestone': 0.0}
+        
+        # Calculate certainty-weighted ratios
+        quartz_ratio = counts['quartz'] / total_certainty
+        feldspar_ratio = counts['feldspars'] / total_certainty
+        mica_ratio = counts['micas'] / total_certainty
+        calcite_ratio = counts['calcite'] / total_certainty
+        
+        weights = {
+            'granite': 0.0,
+            'sandstone': 0.0,
+            'limestone': 0.0
+        }
+        
+        # Granite scoring with uncertainty consideration
+        granite_score = 0.0
+        if 0.2 <= quartz_ratio <= 0.4:
+            granite_score += 0.4
+        if 0.35 <= feldspar_ratio <= 0.8:
+            granite_score += 0.4
+        if 0.0 <= mica_ratio <= 0.35:
+            granite_score += 0.2
+        weights['granite'] = granite_score
+        
+        # Sandstone scoring
+        sandstone_score = 0.0
+        if quartz_ratio >= 0.65:
+            sandstone_score += 0.5
+        if 0.05 <= feldspar_ratio <= 0.25:
+            sandstone_score += 0.3
+        if calcite_ratio <= 0.1:
+            sandstone_score += 0.2
+        weights['sandstone'] = sandstone_score
+        
+        # Limestone scoring
+        limestone_score = 0.0
+        if calcite_ratio >= 0.85:
+            limestone_score = 1.0
+        elif calcite_ratio >= 0.45:
+            limestone_score = 0.8
+        weights['limestone'] = limestone_score
+        
+        # Apply overall uncertainty penalty
+        mean_uncertainty = sum(uncertainties) / len(uncertainties)
+        uncertainty_factor = 1 - mean_uncertainty
+        weights = {k: v * uncertainty_factor for k, v in weights.items()}
+        
+        # Normalize weights if any are non-zero
+        max_weight = max(weights.values())
+        if max_weight > 0:
+            weights = {k: v/max_weight for k, v in weights.items()}
+            
+        return weights
 
-        # Check if scores are within constraints with uncertainty margins
-        matches_constraints = self._check_constraints_with_uncertainty(
-            group_scores, 
-            constraints,
-            np.mean([u['variance'] for u in uncertainties])
+    def check_mineral_assemblage_rules(self, predictions: List[str], 
+                                     uncertainties: List[float]) -> Dict:
+        """
+        Check mineral assemblages using weight-based approach with uncertainty consideration
+        """
+        weights = self.evaluate_rock_type_weights(predictions, uncertainties)
+        
+        # Adjust thresholds based on uncertainty
+        mean_uncertainty = sum(uncertainties) / len(uncertainties)
+        adjusted_confidence_threshold = self.uncertainty_threshold + (
+            0.7 * (1 - mean_uncertainty)  # Base threshold of 0.7 adjusted by certainty
         )
-
-        # Calculate overall confidence considering uncertainties
-        base_confidence = sum(group_scores.values()) / len(constraints)
-        uncertainty_penalty = (uncertain_count / 10) * 0.5  # Up to 50% confidence reduction
-        adjusted_confidence = base_confidence * (1 - uncertainty_penalty)
-
+        adjusted_dominance_threshold = 0.3 * (1 - mean_uncertainty)
+        
+        # Get the two highest weights
+        sorted_weights = sorted(weights.items(), key=lambda x: x[1], reverse=True)
+        highest_weight = sorted_weights[0][1]
+        second_highest = sorted_weights[1][1] if len(sorted_weights) > 1 else 0
+        
+        # Check if we're confident enough given uncertainty
+        is_confident = (highest_weight >= adjusted_confidence_threshold and 
+                       (highest_weight - second_highest) >= adjusted_dominance_threshold)
+        
+        rock_types = {
+            'granite': False,
+            'limestone': False,
+            'sandstone': False
+        }
+        
+        if is_confident:
+            winning_rock = sorted_weights[0][0]
+            rock_types[winning_rock] = True
+        
         return {
-            'matches_composition': matches_constraints,
-            'confidence': adjusted_confidence,
-            'group_scores': group_scores,
-            'uncertainty_metrics': {
-                'mean_entropy': np.mean([u['entropy'] for u in uncertainties]),
-                'mean_variance': np.mean([u['variance'] for u in uncertainties]),
-                'uncertain_predictions': uncertain_count
-            }
+            'satisfied': is_confident,
+            'weights': weights,
+            'rock_types': rock_types,
+            'counts': self.get_mineral_counts(predictions, uncertainties),
+            'mean_uncertainty': mean_uncertainty,
+            'adjusted_confidence_threshold': adjusted_confidence_threshold
         }
 
-    def _calculate_confidence_weight(self, uncertainty: Dict[str, float]) -> float:
-        """Calculate confidence weight based on uncertainty metrics"""
-        entropy_factor = max(0, 1 - (uncertainty['entropy'] / self.entropy_threshold))
-        variance_factor = max(0, 1 - (uncertainty['variance'] / self.variance_threshold))
-        return min(entropy_factor, variance_factor)
-
-    def _check_constraints_with_uncertainty(self, 
-                                         scores: Dict[str, float], 
-                                         constraints: Dict[str, Tuple[float, float]],
-                                         mean_variance: float) -> bool:
-        """Check if scores meet constraints while considering uncertainty margins"""
-        # Add uncertainty margin based on mean variance
-        margin = mean_variance * 2  # Adjust multiplier based on validation
-        
-        for group, (min_val, max_val) in constraints.items():
-            if group not in scores:
-                return False
-            score = scores[group]
-            # Expand acceptable range by margin
-            if not (min_val - margin <= score <= max_val + margin):
-                return False
-        return True
-
     def process_spectrum(self, spectrum: torch.Tensor, true_mineral: str = None) -> Dict:
-        """Override process_spectrum to include uncertainty in rock analysis"""
-        predicted_mineral, probabilities, entropy, variance = self.predict_mineral(spectrum)
+        """Process spectrum and determine rock type with uncertainty consideration"""
+        # Get mineral prediction and uncertainty
+        predicted_mineral, probabilities, uncertainty = self.predict_mineral_with_uncertainty(spectrum)
         
         self.prediction_history.append(predicted_mineral)
-        self.uncertainty_history.append({'entropy': entropy, 'variance': variance})
+        self.uncertainty_history.append(uncertainty)
         if true_mineral is not None:
             self.ground_truth_history.append(true_mineral)
         
-        if len(self.prediction_history) > 10:
+        # Maintain window size
+        if len(self.prediction_history) > self.window_size:
             self.prediction_history.pop(0)
             self.uncertainty_history.pop(0)
             if self.ground_truth_history:
                 self.ground_truth_history.pop(0)
         
-        if len(self.prediction_history) == 10:
-            # Evaluate compositions for each rock type
-            granite_analysis = self.evaluate_rock_composition(
+        # Perform rock type analysis if we have enough measurements
+        if len(self.prediction_history) == self.window_size:
+            mineral_analysis = self.check_mineral_assemblage_rules(
                 self.prediction_history, 
-                self.uncertainty_history,
-                'granite'
-            )
-            sandstone_analysis = self.evaluate_rock_composition(
-                self.prediction_history,
-                self.uncertainty_history,
-                'sandstone'
-            )
-            limestone_analysis = self.evaluate_rock_composition(
-                self.prediction_history,
-                self.uncertainty_history,
-                'limestone'
+                self.uncertainty_history
             )
             
-            # Determine most likely rock type
-            rock_analyses = {
-                RockType.GRANITE: granite_analysis,
-                RockType.SANDSTONE: sandstone_analysis,
-                RockType.LIMESTONE: limestone_analysis
-            }
-            
-            best_rock_type = max(
-                rock_analyses.items(),
-                key=lambda x: x[1]['confidence'] if x[1]['matches_composition'] else -1
-            )
-            
-            classification = (
-                best_rock_type[0] 
-                if best_rock_type[1]['matches_composition'] 
-                else RockType.OTHER
-            )
-            
+            # Determine classification based on weights and uncertainty
+            if mineral_analysis['satisfied']:
+                weights = mineral_analysis['weights']
+                max_rock = max(weights.items(), key=lambda x: x[1])[0].upper()
+                classification = RockType[max_rock]
+            else:
+                classification = RockType.OTHER
+                
             rock_analysis = {
                 'classification': classification.value,
-                'confidence_scores': {
-                    'granite': granite_analysis['confidence'],
-                    'sandstone': sandstone_analysis['confidence'],
-                    'limestone': limestone_analysis['confidence']
-                },
-                'uncertainty_metrics': self.uncertainty_history[-1],
-                'composition_analyses': {
-                    'granite': granite_analysis,
-                    'sandstone': sandstone_analysis,
-                    'limestone': limestone_analysis
-                }
+                'weights': mineral_analysis['weights'],
+                'mineral_counts': mineral_analysis['counts'],
+                'confidence': max(mineral_analysis['weights'].values()),
+                'is_confident': mineral_analysis['satisfied'],
+                'mean_uncertainty': mineral_analysis['mean_uncertainty'],
+                'confidence_threshold': mineral_analysis['adjusted_confidence_threshold']
             }
         else:
             rock_analysis = {
@@ -671,9 +734,18 @@ class UncertaintyHierarchicalRockClassifier(UncertaintyIntegratedRockClassifier)
                 'current_count': len(self.prediction_history)
             }
         
+        # Store in analysis_history
+        self.analysis_history.append({
+            'mineral_prediction': predicted_mineral,
+            'true_mineral': true_mineral,
+            'uncertainty': uncertainty,
+            'rock_analysis': rock_analysis,
+            'measurement_number': len(self.prediction_history)
+        })
+        
         return {
             'mineral_prediction': predicted_mineral,
             'mineral_probabilities': probabilities,
-            'uncertainty': {'entropy': entropy, 'variance': variance},
+            'uncertainty': uncertainty,
             'rock_analysis': rock_analysis
         }
