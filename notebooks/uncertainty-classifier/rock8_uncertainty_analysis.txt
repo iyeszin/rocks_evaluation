@@ -1,0 +1,63 @@
+Mineral Analysis Results:
+Predicted Mineral: Muscovite
+
+Mineral Probabilities:
+Albite: 0.0258
+Almandine: 0.0063
+Andalusite: 0.0105
+Annite: 0.2832
+Anorthite: 0.2260
+Calcite: 0.0011
+Dolomite: 0.0432
+Epidote: 0.0035
+Glaucophane: 0.0002
+Jadeite: 0.0000
+Kyanite: 0.0029
+Muscovite: 0.2969
+Omphacite: 0.0011
+Orthoclase: 0.0115
+Phlogopite: 0.0388
+Pyrite: 0.0099
+Pyrope: 0.0072
+Quartz: 0.0094
+Rhodochrosite: 0.0005
+Rutile: 0.0007
+Sanidine: 0.0051
+Staurolite: 0.0052
+Tourmaline: 0.0108
+
+Uncertainty Information:
+Measurement Uncertainty: 0.5844
+
+Rock Analysis Results:
+Classification: granite
+
+Rock Type Weights:
+Granite: 1.0000
+Sandstone: 0.5000
+Limestone: 0.0000
+
+Confidence Score: 0.9259
+Mean Uncertainty: 0.0741
+Is Confident: True
+
+Mineral Counts:
+Quartz: 2.00
+Feldspars: 3.00
+Micas: 4.26
+Calcite: 0.00
+Pyrite: 0.00
+Rutile: 0.00
+Tourmaline: 0.00
+
+Uncertainty History:
+Measurement 1: 0.0000
+Measurement 2: 0.0449
+Measurement 3: 0.0000
+Measurement 4: -0.0000
+Measurement 5: 0.0790
+Measurement 6: 0.0000
+Measurement 7: -0.0000
+Measurement 8: 0.0000
+Measurement 9: 0.0324
+Measurement 10: 0.5844

@@ -1,0 +1,17 @@
+
+Analysis Results:
+Classification: granite
+
+Rock Type Weights:
+- Granite: 1.000
+- Sandstone: 0.250
+- Limestone: 0.000
+
+Mineral Counts:
+- Quartz: 2
+- Feldspars: 4
+- Micas: 4
+- Calcite: 0
+- Pyrite: 0
+- Rutile: 0
+- Tourmaline: 0

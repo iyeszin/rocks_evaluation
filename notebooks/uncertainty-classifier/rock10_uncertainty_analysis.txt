@@ -1,0 +1,63 @@
+Mineral Analysis Results:
+Predicted Mineral: Annite
+
+Mineral Probabilities:
+Albite: 0.0065
+Almandine: 0.0024
+Andalusite: 0.0108
+Annite: 0.7047
+Anorthite: 0.1417
+Calcite: 0.0018
+Dolomite: 0.0168
+Epidote: 0.0028
+Glaucophane: 0.0006
+Jadeite: 0.0000
+Kyanite: 0.0015
+Muscovite: 0.0146
+Omphacite: 0.0007
+Orthoclase: 0.0254
+Phlogopite: 0.0227
+Pyrite: 0.0143
+Pyrope: 0.0018
+Quartz: 0.0004
+Rhodochrosite: 0.0014
+Rutile: 0.0037
+Sanidine: 0.0169
+Staurolite: 0.0054
+Tourmaline: 0.0030
+
+Uncertainty Information:
+Measurement Uncertainty: 0.3815
+
+Rock Analysis Results:
+Classification: granite
+
+Rock Type Weights:
+Granite: 1.0000
+Sandstone: 0.2000
+Limestone: 0.0000
+
+Confidence Score: 0.9116
+Mean Uncertainty: 0.0884
+Is Confident: True
+
+Mineral Counts:
+Quartz: 2.00
+Feldspars: 4.90
+Micas: 2.22
+Calcite: 0.00
+Pyrite: 0.00
+Rutile: 0.00
+Tourmaline: 0.00
+
+Uncertainty History:
+Measurement 1: 0.0000
+Measurement 2: 0.3994
+Measurement 3: 0.0000
+Measurement 4: 0.0000
+Measurement 5: 0.0547
+Measurement 6: 0.0486
+Measurement 7: 0.0000
+Measurement 8: 0.0000
+Measurement 9: 0.0000
+Measurement 10: 0.3815

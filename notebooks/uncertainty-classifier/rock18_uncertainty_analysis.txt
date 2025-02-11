@@ -1,0 +1,63 @@
+Mineral Analysis Results:
+Predicted Mineral: Pyrite
+
+Mineral Probabilities:
+Albite: 0.0173
+Almandine: 0.0016
+Andalusite: 0.0167
+Annite: 0.0176
+Anorthite: 0.0136
+Calcite: 0.0052
+Dolomite: 0.0077
+Epidote: 0.0074
+Glaucophane: 0.0015
+Jadeite: 0.0045
+Kyanite: 0.0123
+Muscovite: 0.0040
+Omphacite: 0.0061
+Orthoclase: 0.0778
+Phlogopite: 0.0109
+Pyrite: 0.7381
+Pyrope: 0.0037
+Quartz: 0.0328
+Rhodochrosite: 0.0018
+Rutile: 0.0029
+Sanidine: 0.0028
+Staurolite: 0.0052
+Tourmaline: 0.0086
+
+Uncertainty Information:
+Measurement Uncertainty: 0.3950
+
+Rock Analysis Results:
+Classification: granite
+
+Rock Type Weights:
+Granite: 1.0000
+Sandstone: 0.0000
+Limestone: 0.0000
+
+Confidence Score: 0.9022
+Mean Uncertainty: 0.0978
+Is Confident: True
+
+Mineral Counts:
+Quartz: 1.00
+Feldspars: 4.00
+Micas: 2.42
+Calcite: 1.00
+Pyrite: 0.60
+Rutile: 0.00
+Tourmaline: 0.00
+
+Uncertainty History:
+Measurement 1: 0.0000
+Measurement 2: 0.0000
+Measurement 3: -0.0000
+Measurement 4: 0.0000
+Measurement 5: -0.0000
+Measurement 6: 0.5828
+Measurement 7: -0.0000
+Measurement 8: 0.0000
+Measurement 9: 0.0000
+Measurement 10: 0.3950

@@ -1,0 +1,63 @@
+Mineral Analysis Results:
+Predicted Mineral: Quartz
+
+Mineral Probabilities:
+Albite: 0.0000
+Almandine: 0.0000
+Andalusite: 0.0000
+Annite: 0.0000
+Anorthite: 0.0000
+Calcite: 0.0000
+Dolomite: 0.0000
+Epidote: 0.0000
+Glaucophane: 0.0000
+Jadeite: 0.0000
+Kyanite: 0.0000
+Muscovite: 0.0000
+Omphacite: 0.0000
+Orthoclase: 0.0000
+Phlogopite: 0.0000
+Pyrite: 0.0000
+Pyrope: 0.0000
+Quartz: 1.0000
+Rhodochrosite: 0.0000
+Rutile: 0.0000
+Sanidine: 0.0000
+Staurolite: 0.0000
+Tourmaline: 0.0000
+
+Uncertainty Information:
+Measurement Uncertainty: 0.0000
+
+Rock Analysis Results:
+Classification: granite
+
+Rock Type Weights:
+Granite: 1.0000
+Sandstone: 0.2000
+Limestone: 0.0000
+
+Confidence Score: 0.9356
+Mean Uncertainty: 0.0644
+Is Confident: True
+
+Mineral Counts:
+Quartz: 3.00
+Feldspars: 3.95
+Micas: 2.41
+Calcite: 0.00
+Pyrite: 0.00
+Rutile: 0.00
+Tourmaline: 0.00
+
+Uncertainty History:
+Measurement 1: -0.0000
+Measurement 2: 0.0000
+Measurement 3: 0.0539
+Measurement 4: 0.0000
+Measurement 5: 0.0000
+Measurement 6: 0.5896
+Measurement 7: 0.0000
+Measurement 8: -0.0000
+Measurement 9: 0.0000
+Measurement 10: 0.0000

@@ -1,0 +1,63 @@
+Mineral Analysis Results:
+Predicted Mineral: Tourmaline
+
+Mineral Probabilities:
+Albite: 0.0082
+Almandine: 0.0004
+Andalusite: 0.0006
+Annite: 0.0085
+Anorthite: 0.0116
+Calcite: 0.0001
+Dolomite: 0.0073
+Epidote: 0.0071
+Glaucophane: 0.0002
+Jadeite: 0.0000
+Kyanite: 0.0062
+Muscovite: 0.0121
+Omphacite: 0.0035
+Orthoclase: 0.0293
+Phlogopite: 0.0206
+Pyrite: 0.0118
+Pyrope: 0.0006
+Quartz: 0.0017
+Rhodochrosite: 0.0000
+Rutile: 0.0012
+Sanidine: 0.0024
+Staurolite: 0.0007
+Tourmaline: 0.8659
+
+Uncertainty Information:
+Measurement Uncertainty: 0.2299
+
+Rock Analysis Results:
+Classification: granite
+
+Rock Type Weights:
+Granite: 1.0000
+Sandstone: 0.0000
+Limestone: 0.0000
+
+Confidence Score: 0.9149
+Mean Uncertainty: 0.0851
+Is Confident: True
+
+Mineral Counts:
+Quartz: 1.00
+Feldspars: 2.97
+Micas: 2.41
+Calcite: 1.00
+Pyrite: 0.99
+Rutile: 0.00
+Tourmaline: 0.77
+
+Uncertainty History:
+Measurement 1: 0.0000
+Measurement 2: -0.0000
+Measurement 3: 0.0266
+Measurement 4: -0.0000
+Measurement 5: -0.0000
+Measurement 6: 0.0072
+Measurement 7: 0.5878
+Measurement 8: 0.0000
+Measurement 9: 0.0000
+Measurement 10: 0.2299
