@@ -34,18 +34,24 @@ def analyze_results(file_path='rock_classifications.csv'):
     print(cm)
 
     # Plot confusion matrix
-    plt.figure(figsize=(10,8))
+    plt.figure(figsize=(8,6))  # Standard single-column width
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-            xticklabels=labels, 
-            yticklabels=labels)
-    plt.title('Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('True Label')
-    plt.savefig('confusion_matrix.png')
+                xticklabels=labels,
+                yticklabels=labels,
+                annot_kws={'size': 12},  # Annotation font size
+                )
+
+    # Adjust font sizes
+    plt.title('Confusion Matrix', fontsize=14)
+    plt.xlabel('Predicted', fontsize=12)
+    plt.ylabel('True Label', fontsize=12)
+
+    # Adjust tick label sizes
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
+
+    # Adjust layout to prevent label cutoff
+    plt.tight_layout()
+
+    plt.savefig('confusion_matrix.png', dpi=300, bbox_inches='tight')
     plt.close()
-    
-    print("\nClassification Report:")
-    print(classification_report(final_df['ground_truth'], final_df['classification']))
-
-
-    final_df.to_csv('rock_classification_analysis.csv', index=False)
